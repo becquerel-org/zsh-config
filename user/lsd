@@ -1,0 +1,10 @@
+# List only directories and symbolic
+# links that point to directories
+
+if (( ${#} > 2 )); then
+	ls -lhd ${1}/*(-/DN) ${argv[2,-1]}
+elif (( ${#} )); then
+	ls -lhd ${1}/*(-/DN)
+else
+	ls -lhd *(-/DN)
+fi

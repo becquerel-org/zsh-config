@@ -1,0 +1,365 @@
+# -*- mode: sh; -*-
+###############################################################################
+##
+## Options
+##
+###############################################################################
+
+#
+# Limits
+#
+# Use hard limits, except for a smaller stack and no core dumps
+unlimit
+limit stack 8192
+limit core 0
+limit -s
+
+# job control
+setopt AUTO_CONTINUE			# disowning stopped jobs sends them a CONT signal
+setopt NO_BG_NICE			# no background nicing
+setopt CHECK_JOBS			# report on owned background commands before exit
+setopt NO_NOTIFY			# delay notification
+setopt HUP				# send HUP to children when exiting
+
+# prompt
+setopt PROMPT_SUBST			# ${} substitutions in prompts
+setopt PROMPT_PERCENT			# % substitutions in prompts
+
+# history
+setopt APPEND_HISTORY			# append, don't overwrite
+setopt INC_APPEND_HISTORY		# append as you go
+setopt NO_SHARE_HISTORY			# share with other running shells
+setopt EXTENDED_HISTORY			# timestamp history
+setopt HIST_IGNORE_DUPS			# don't store consecutive duplicates
+setopt HIST_EXPIRE_DUPS_FIRST	        # preferentially remove duplicates when pruning history
+setopt HIST_REDUCE_BLANKS		# kill meaningless space in history commands
+setopt HIST_IGNORE_SPACE		# don't store space-prepended commands
+setopt HIST_NO_STORE			# don't store (history|fc) commands
+setopt HIST_NO_FUNCTIONS		# don't store functions
+setopt HIST_ALLOW_CLOBBER		# allow hist commands to clobber files
+setopt NO_BANG_HIST			# no CSH-style ! history
+
+# input/output
+setopt NO_CLOBBER			# no file clobbering with simple (>|>>) redirection
+setopt CORRECT				# correct command spelling
+setopt NO_FLOW_CONTROL			# disable tty ^S/^Q flow control
+setopt INTERACTIVE_COMMENTS		# allow #comments even in interactive shells
+setopt PATH_DIRS			# path search on foo/bar commands
+setopt PRINT_EXIT_VALUE			# print eval if != 0
+setopt RC_QUOTES			# turn a '' pair inside a '-quoted section into a literal '
+setopt RM_STAR_SILENT			# don't bug about 'rm *'
+
+# completion
+setopt COMPLETE_IN_WORD			# completion takes place @ cursor position
+setopt NO_REC_EXACT			# recongnize ambiguous exact matches
+setopt NO_LIST_ROWS_FIRST		# lay out the matches sorted horizontally
+
+# expansion & globbing
+setopt GLOB_DOTS			# leading . in filename not required
+setopt EXTENDED_GLOB			# treat (#|~|^) as part of pattern
+setopt NO_MATCH				# error out if pattern has no matches
+setopt BAD_PATTERN			# error out on malformed filename generation patterns
+
+# cd and pushd
+setopt AUTO_CD CDABLE_VARS		# implied cd
+setopt AUTO_PUSHD PUSHD_SILENT	        # implied, silent pushd on (implied) cd ^^'
+setopt PUSHD_IGNORE_DUPS		# delete duplicate pushd entries
+setopt NO_PUSHD_TO_HOME			# "pushd" acts like "pushd ${HOME}"
+setopt PUSHD_SILENT			# Do not print dirsatck after pushd/popd
+
+# scripts and functions
+setopt NO_MULTIOS			# no inbuilt (tee|cat)'ing
+setopt NO_GLOBAL_EXPORT			# typeset -x does not imply -g
+
+# zle
+setopt BEEP				# beep =P
+
+setopt ALL_EXPORT			# start var defs
+
+###############################################################################
+#
+# Variables and Parameters
+#
+###############################################################################
+
+DIRSTACKSIZE=100
+
+HISTFILE=${ZHOME}/.zhistory
+HISTSIZE=4000
+SAVEHIST=4000
+
+READNULLCMD="${PAGER:-/usr/bin/less}"
+
+setopt NO_ALL_EXPORT			# end var defs
+
+###############################################################################
+#
+# Autoloads, zstyle and funcalls
+#
+###############################################################################
+
+# autoload aliases
+zmodload -ap zsh/mapfile mapfile
+zmodload -ab zsh/pcre pcre_compile pcre_study pcre_match
+zmodload -ac zsh/pcre -pcre_match
+zmodload -ab zsh/stat stat
+zmodload -ab zsh/zprof zprof
+zmodload -ab zsh/zpty zpty
+
+# Prompt
+autoload -Uz promptinit
+promptinit; prompt soor
+zstyle ':prompt:soor' ratio 5.5
+zstyle ':prompt:soor' cut-string '../'
+
+# Completion
+zmodload -i zsh/complist
+autoload -Uz compinit
+compinit
+
+# bash-completions
+autoload -Uz bashcompinit bash_source have
+bashcompinit
+[[ -r /usr/share/bash-completion/cowsay     ]] && bash_source /usr/share/bash-completion/cowsay
+[[ -r /usr/share/bash-completion/stgit      ]] && bash_source /usr/share/bash-completion/stgit
+
+#
+# Functions from the "contributed" package
+#
+# allopt
+autoload -Uz allopt
+# relative
+autoload -Uz relative
+# zargs
+autoload -Uz zargs
+# zef/fned
+autoload -Uz zed fned
+# zmv
+autoload -Uz zmv zln zcp
+
+# emulate old pushd behaviour
+autoload -Uz pushd
+
+###############################################################################
+#
+# Zle
+#
+###############################################################################
+
+#
+# Zle contributed widgets
+#
+# begging histsearch that places cusrsor at end of line
+autoload -Uz history-search-end
+zle -N history-beginning-search-backward-end \
+    history-search-end
+zle -N history-beginning-search-forward-end \
+    history-search-end
+# match-style for *-word widgets
+autoload -U select-word-style
+zle -N select-word-style
+select-word-style normal
+# delete whole word, w. match styles
+autoload -Uz delete-whole-word-match
+zle -N kill-whole-word-match \
+    delete-whole-word-match
+# menu-based hist-search
+autoload -Uz history-beginning-search-menu
+zle -N history-beginning-search-menu-space-end \
+    history-beginning-search-menu
+# incremental word completion w. preview
+autoload -Uz incremental-complete-word
+zle -N incremental-complete-word
+# incrememntal file insertion with pattern preview
+autoload -Uz insert-files
+zle -N insert-files
+# predictive typing
+autoload -Uz predict-on
+zle -N predict-on
+zle -N predict-off
+
+#
+# Static bindings
+#
+bindkey -e
+bindkey ' '    magic-space
+bindkey '^q'   push-line-or-edit
+bindkey '\eq'  push-line-or-edit
+bindkey '^Z'   undo
+bindkey '^Zz'  redo
+bindkey '^Xp'  history-beginning-search-backward-end
+bindkey '^Xi'  incremental-complete-word
+bindkey '^Xf'  insert-files
+bindkey -r '^S'
+bindkey '^Sb'  history-incremental-search-backward
+bindkey '^Sf'  history-incremental-search-forward
+bindkey -r '^R'
+bindkey '^Rx'  kill-region
+bindkey '^Rc'  copy-region-to-kill
+bindkey '^Rv'  yank
+bindkey '^T'   transpose-words
+bindkey '^[T'  transpose-chars
+bindkey '^[t'  transpose-chars
+bindkey '^I'   complete-word
+bindkey '^[[Z' reverse-menu-complete
+
+bindkey -M menuselect '^X' accept-and-infer-next-history
+
+#
+# Dynamic zkbd bindings
+#
+# prefer user zkbd keymaps
+if [[ -r ${ZHOME}/.zkbd/$TERM-$VENDOR-$OSTYPE ]]; then
+    . ${ZHOME}/.zkbd/$TERM-$VENDOR-$OSTYPE
+elif [[ -r /etc/zsh/zkbd/$TERM-$VENDOR-$OSTYPE ]]; then
+    . /etc/zsh/zkbd/$TERM-$VENDOR-$OSTYPE
+fi
+# normal keys
+[[ -n ${key[F5]}        ]] && bindkey "${key[F5]}"        predict-on
+[[ -n ${key[F6]}        ]] && bindkey "${key[F6]}"        predict-off
+[[ -n ${key[F8]}        ]] && bindkey "${key[F8]}"        select-word-style
+[[ -n ${key[F12]}       ]] && bindkey "${key[F12]}"       universal-argument
+[[ -n ${key[Backspace]} ]] && bindkey "${key[Backspace]}" backward-delete-char
+[[ -n ${key[Delete]}    ]] && bindkey "${key[Delete]}"    delete-char
+[[ -n ${key[Home]}      ]] && bindkey "${key[Home]}"      beginning-of-line
+[[ -n ${key[End]}       ]] && bindkey "${key[End]}"       end-of-line
+[[ -n ${key[PageUp]}    ]] && bindkey "${key[PageUp]}"    history-search-backward
+[[ -n ${key[PageDown]}  ]] && bindkey "${key[PageDown]}"  history-search-forward
+# ^-keys
+[[ -n ${key[Control-Delete]}   ]] && bindkey "${key[Control-Delete]}"   kill-whole-word-match
+[[ -n ${key[Control-PageUp]}   ]] && bindkey "${key[Control-PageUp]}"   undefined-key
+[[ -n ${key[Control-PageDown]} ]] && bindkey "${key[Control-PageDown]}" undefined-key
+[[ -n ${key[Control-Left]}     ]] && bindkey "${key[Control-Left]}"     backward-word
+[[ -n ${key[Control-Right]}    ]] && bindkey "${key[Control-Right]}"    forward-word
+[[ -n ${key[Control-Up]}       ]] && bindkey "${key[Control-Up]}"       history-beginning-search-backward-end
+[[ -n ${key[Control-Down]}     ]] && bindkey "${key[Control-Down]}"     history-beginning-search-forward-end
+
+###############################################################################
+#
+# Styles
+#
+###############################################################################
+
+#
+# Builtin completion styles
+#
+# configuration
+zstyle ':completion::complete:*' use-cache true
+zstyle ':compinstall' filename '${ZHOME}/.zcompinstall'
+# global
+zstyle ':completion:*' completer _oldlist _expand _complete _match _ignored _correct _approximate _prefix
+zstyle ':completion:*' completions true
+zstyle ':completion:*' glob true
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' matcher-list '' '+m:{_a-zA-Z-}={-A-Za-z_}' '+r:|[._-]=* r:|=*' '+l:|=*'
+zstyle ':completion:*' menu select=0
+zstyle ':completion:*' substitute true
+zstyle ':completion:*' verbose true
+zstyle ':completion:*' select-prompt '%SScrolling active: current selection at %p%s'
+zstyle ':completion:*' list-prompt '%SAt %p: Hit TAB for more, or the character to insert%s'
+zstyle ':completion:*' auto-description 'specify: %d'
+zstyle ':completion:*' prompt 'Nub, joo kommitted %e errorz!'
+zstyle ':completion:*' prefix-hidden false
+zstyle ':completion:*' prefix-needed true
+zstyle ':completion:*:descriptions' format '%U%BCompleting %d%b%u'
+zstyle ':completion:*:warnings' format '%BSorry, no matches for: %d%b'
+zstyle ':completion:*:corrections' format '%B%Ucorrections for %o (%e errors):'
+#zstyle ':completion:*:-command-:*' tag-order '!parameters'
+# _oldlist
+#zstyle ':completion:*' old-list
+#zstyle ':completion:*' old-menu true
+# _expand
+zstyle ':completion::expand:*' tag-order expansions original all-expansions
+zstyle ':completion::expand:*' glob true
+zstyle ':completion::expand:*' substitute true
+zstyle ':completion::expand:*' subst-glob-only false
+zstyle ':completion::expand:*' sort menu # true|false|menu
+zstyle ':completion::expand:*' accept-exact false
+zstyle ':completion::expand:*' add-space true subst # true|file subst
+zstyle ':completion::expand:*' keep_prefix changed # true|false|changed
+zstyle ':completion::expand:*' suffix true
+zstyle ':completion:*:expansions' format '%B%Uexpansions for %o:'
+# _match
+zstyle ':completion::match:*' original true # only
+zstyle ':completion::match:*' insert-unambiguous true
+# _ignored
+zstyle ':completion:*:ignored:*' single-ignored menu
+# _correct
+zstyle ':completion:*:correct:*' insert-unambiguous true
+# _approximate
+zstyle ':completion:*:approximate:*' insert-unambiguous true
+zstyle -e ':completion:*:approximate:*' max-errors \
+    'reply=( $(( ($#PREFIX+$#SUFFIX)/3 )) numeric )'
+# _prefix
+#zstyle ':completion:*:prefix:*' add-space false
+#zstyle ':completion:*:prefix-complete:*' completer _complete
+#zstyle ':completion:*:prefix-approximate:*' completer _approximate
+zstyle ':completion:*:prefix:*' completer _approximate
+
+#
+# Zle contributed widgets styles
+#
+# select-word-style
+zstyle ':zle:transpose-words' skip-chars true
+# incremental-complete-word
+zstyle ':incremental prompt' '%s%c generated %n matches for %u %l'
+zstyle ':completion:incremental' list true
+zstyle ':completion:incremental:*' completer _complete _correct
+# predict
+zstyle ':completion:predict:*' completer _complete
+zstyle ':completion:predict:*' cursor complete
+zstyle ':completion:predict:*' hidden all
+zstyle ':completion:predict:*' verbose false
+zstyle ':completion:predict:*:warnings' format
+zstyle ':predict' verbose true
+zstyle ':predict' toggle true
+
+#
+# Path completion options
+#
+zstyle ':completion:*:paths' ambiguous true
+zstyle ':completion:*' expand prefix suffix
+#zstyle ':completion:*:files' file-sort (size|links|modification|time|date|access|inode|change)(reverse|)
+zstyle ':completion:*:files' ignore-parents parent pwd .. # directory
+#zstyle ':completion:*' list-suffixes true
+#zstyle ':completion:*' squeeze-slashes true
+zstyle '*:completion:*' users root creidiki castle
+
+#
+# ignored-patterns
+#
+zstyle ':completion:*:(all-|)files' ignored-patterns '*?.o' '*?~' '*/.keep'
+# only show up with _ignored
+zstyle ':completion:*:functions' ignored-patterns '_*'
+
+#
+# rm ignored-patterns files
+#
+zstyle ':completion:*:*:rm:*' file-patterns \
+'%p:globbed-files' '*.o:object-files' '*~:backup-files' '*(-/):directories' '*:all-files'
+
+#
+# Pid generation
+#
+zstyle ':completion:*:*:((b|f)g|disown|jobs|kill(all|)|renice|wait):*' insert-ids menu
+#zstyle ':completion:*:*:((b|f)g|disown|jobs|kill|wait):*' numbers (true|false|[:number:])
+if [ "$EUID" = "0" ] || [ "$USER" = "root" ]; then
+    zstyle ':completion:*:*:((b|f)g|disown|jobs|kill(all|)|renice|wait):*' command 'ps -e'
+else
+    zstyle ':completion:*:*:((b|f)g|disown|jobs|kill(all|)|renice|wait):*' command 'ps -u ${USER}'
+fi
+
+#
+# colours
+#
+zstyle ':completion:*:*:kill:*:jobs' list-colors 'no=01;31'
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+
+###############################################################################
+#
+# Aliases
+#
+###############################################################################
+
+. /etc/zsh/zalias

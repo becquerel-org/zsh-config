@@ -1,0 +1,95 @@
+# -*- mode: sh; -*-
+# Global aliases
+#
+# PInfo
+alias man='pman'
+[[ -o interactive ]] && compdef _man pman
+alias info='pinfo'
+[[ -o interactive ]] && compdef _info pinfo
+
+# Common commands
+alias mv='nocorrect mv'
+alias cp='nocorrect cp'
+alias ln='nocorrect ln'
+alias mmv='noglob zmv -W'
+[[ -o interactive ]] && compdef _zmv mmv
+alias mcp='noglob zcp -W'
+[[ -o interactive ]] && compdef _zcp mcp
+alias mln='noglob zln -W'
+[[ -o interactive ]] && compdef _zln mln
+
+alias mkdir='nocorrect mkdir'
+alias j='jobs'
+[[ -o interactive ]] && compdef _jobs j
+alias pu='pushd'
+[[ -o interactive ]] && compdef _pushd pu
+alias po='popd'
+[[ -o interactive ]] && compdef _popd po
+alias d='dirs -v'
+[[ -o interactive ]] && compdef _dirs d
+alias h='history'
+[[ -o interactive ]] && compdef _history h
+alias grep='egrep'
+alias m='most'
+
+autoload -Uz ef
+[[ -o interactive ]] && compdef _joe ef
+autoload -Uz eef
+
+alias ll='ls -lh'
+[[ -o interactive ]] && compdef _ls ll
+alias la='ls -a'
+[[ -o interactive ]] && compdef _ls la
+alias lla='ls -lha'
+[[ -o interactive ]] && compdef _ls lla
+autoload -Uz lsd
+[[ -o interactive ]] && compdef _ls lsd
+autoload -Uz lsa
+[[ -o interactive ]] && compdef _ls lsa
+
+qlm() {	qlist $* | most }
+alias qlem='qlm -e'
+alias qlc='qlop -c'
+
+alias du='du -h'
+alias df='df -h'
+
+alias eix='noglob eix'
+
+alias reprofile='source /etc/zsh/zprofile; source ~zhome/.zshenv'
+freload() { while (( $# )); do; unfunction $1; autoload -U $1; shift; done }
+
+alias csi='rlwrap -s 10000 csi'
+
+#
+# Global aliases (work anywhere in line)
+#
+alias -g M='| most'
+alias -g H='| head'
+alias -g T='| tail'
+
+#
+# root-only alisases
+#
+if [ "$EUID" = "0" ] || [ "$USER" = "root" ] ; then
+    # Paludis
+    paludis() { /usr/bin/_paludis_wrapper.bash $* }
+    alias paludis='noglob paludis'
+    alias reconcilio='nice -n 19 reconcilio'
+    alias res-paludis='nice -n 19 zsh /var/paludis/paludis-resume'
+    alias res-reconcilio='nice -n 19 zsh /var/paludis/reconcilio-resume'
+    alias module-rebuild='paludis -i1 --dl-deps-default discard --dl-reinstall-targets always kernel-modules'
+    
+    alias ule='update-live-ebuilds'
+    
+    alias cfgu='cfg-update -u'
+    
+    alias env-update='eselect env update makelinks'
+
+#
+# user-only aliases
+#
+else
+    # Sudoedit
+    alias sef='sudoedit'
+fi

@@ -1,0 +1,22 @@
+# -*- mode: sh; -*-
+# Change the window title of X terminals
+xterm_title_setup () {
+    xterm_titleset () {
+	zstyle -s :xterm title xterm_title
+	xterm_title=${xterm_title:-%n@%m:%~}
+
+	case "${TERM}" in
+	    xterm*|rxvt*|(E|a|k)term|gnome)
+                print -Pn "\033]0;${xterm_title}\007"
+                ;;
+	    screen)
+	        print -Pn "\033_${xterm_title}\033\\"
+		;;
+	esac
+    }
+
+    typeset -gxU precmd_functions
+    precmd_functions=( xterm_titleset ${precmd_functions} )
+}
+
+xterm_title_setup

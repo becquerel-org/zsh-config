@@ -1,0 +1,6 @@
+# -*- mode: sh; -*-
+# The have() function commonly used with bash completions doesn't work in zsh
+# 4.0. The following is a replacement which you can use instead.
+
+unset have
+(( ${+commands[$1]} )) && have=yes
