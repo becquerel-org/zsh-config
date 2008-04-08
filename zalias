@@ -33,7 +33,6 @@ alias grep='egrep'
 alias m='most'
 
 autoload -Uz ef
-[[ -o interactive ]] && compdef _joe ef
 autoload -Uz eef
 
 alias ll='ls -lh'
@@ -48,8 +47,11 @@ autoload -Uz lsa
 [[ -o interactive ]] && compdef _ls lsa
 
 qlm() {	qlist $* | most }
+[[ -o interactive ]] && compdef _portage_utils qlm
 alias qlem='qlm -e'
+[[ -o interactive ]] && compdef _portage_utils qlem
 alias qlc='qlop -c'
+[[ -o interactive ]] && compdef _portage_utils qlc
 
 alias du='du -h'
 alias df='df -h'
@@ -73,7 +75,7 @@ alias -g T='| tail'
 #
 if [ "$EUID" = "0" ] || [ "$USER" = "root" ] ; then
     # Paludis
-    paludis() { /usr/bin/_paludis_wrapper.bash $* }
+    paludis() { /usr/bin/_paludis_wrapper.bash "${@}" }
     alias paludis='noglob paludis'
     alias reconcilio='nice -n 19 reconcilio'
     alias res-paludis='nice -n 19 zsh /var/paludis/paludis-resume'

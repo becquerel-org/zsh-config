@@ -118,10 +118,16 @@ autoload -Uz compinit
 compinit
 
 # bash-completions
-autoload -Uz bashcompinit bash_source have
+autoload -Uz bashcompinit
+autoload -Uz bash_source
+autoload -Uz have
 bashcompinit
-[[ -r /usr/share/bash-completion/cowsay     ]] && bash_source /usr/share/bash-completion/cowsay
-[[ -r /usr/share/bash-completion/stgit      ]] && bash_source /usr/share/bash-completion/stgit
+[[ -r /usr/share/bash-completion/clisp ]] && \
+    bash_source /usr/share/bash-completion/clisp
+[[ -r /usr/share/bash-completion/scrot ]] && \
+    bash_source /usr/share/bash-completion/scrot
+[[ -r /usr/share/bash-completion/stgit ]] && \
+    bash_source /usr/share/bash-completion/stgit
 
 #
 # Functions from the "contributed" package
