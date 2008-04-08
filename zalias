@@ -75,13 +75,7 @@ alias -g T='| tail'
 #
 if [ "$EUID" = "0" ] || [ "$USER" = "root" ] ; then
     # Paludis
-    paludis() {
-	emulate -L zsh
-	setopt NO_EQUALS
-	setopt NO_GLOB
-    	/usr/bin/_paludis_wrapper.bash "${@}"
-    }
-    alias paludis='nocorrect noglob paludis'
+    alias paludis='nocorrect noglob _paludis_wrapper.bash'
     alias reconcilio='nice -n 19 reconcilio'
     alias res-paludis='nice -n 19 zsh /var/paludis/paludis-resume'
     alias res-reconcilio='nice -n 19 zsh /var/paludis/reconcilio-resume'
