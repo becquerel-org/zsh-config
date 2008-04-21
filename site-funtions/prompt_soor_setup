@@ -110,6 +110,9 @@ prompt_soor_setup () {
 			p_temp=$(print -P %${i}~)
 			if (( ( ${#p_temp} + ${#cut_string} ) < ${maxlength} )); then
 			    p_done=${cut_string}${p_temp}
+			elif (( ${i} == 1 )); then
+			    p_done=${cut_string}${p_temp}
+			    break
 			else
 			    break
 			fi
